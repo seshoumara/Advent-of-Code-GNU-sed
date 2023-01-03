@@ -15,8 +15,8 @@ b debug
 	:result_ps_m
 	b parse_moves
 	:result_pm_m
-	b top_crates
-	#b part_2 ?
+	b rearrange_single
+	#b rearrange_bulk
 b EOS
 
 
@@ -42,7 +42,9 @@ b EOS
 		:print_ps
 			x
 			s:\n<INC>[^<]+<CNI>::
-			h;p
+			s:$:\n:
+			s:\[\]::gp
+			h
 			b EOS
 	}
 	/^[0-9 ]*$/b EOS
@@ -63,22 +65,48 @@ b EOS
 b result_pm_m
 
 
-:top_crates
-	:loop_tc
+:rearrange_single
+	:loop_rs
 		s:^@::
 		G
-		#huge regex to match last crate in SRC and append to DST
+		s:^(@*;)([0-9]+),([0-9]+)(\n.*\n?\2[^\n]*)(\[.\])(\n.*\n?\3[^\n]*):\1\2,\3\4\6\5:
+		s:^(@*;)([0-9]+),([0-9]+)(\n.*\n?\3[^\n]*)(\n.*\n?\2[^\n]*)(\[.\])\n:\1\2,\3\4\6\5\n:
 		h
-l
 		x
 		s:^[^\n]+\n::
 		x
 		s:\n.*::
-	/^;/!b loop_tc
+	/^;/!b loop_rs
 	$!b EOS
+b top_crates
+
+
+:rearrange_bulk
+	G
+	s:^@*;([0-9]+).*\n\1[^\n]+:&<:
+	:loop_rb
+		s:^@::
+		s:(\[.\])<:<\1:
+	/^;/!b loop_rb
+	s:^(@*;)([0-9]+),([0-9]+)(\n.*\n?\2[^<]*)<([^\n]+)(\n.*\n?\3[^\n]*):\1\2,\3\4\6\5:
+	s:^(@*;)([0-9]+),([0-9]+)(\n.*\n?\3[^\n]*)(\n.*\n?\2[^<]*)<([^\n]+):\1\2,\3\4\6\5:
+	h
 	x
-	#regex to concatenate the top crate from each stack
-l
+	s:^[^\n]+\n::
+	x
+	s:\n.*::
+	$!b EOS
+b top_crates
+
+
+:top_crates
+	x
+	s:^:\n:p
+	:loop_tc
+		s:\n[^\n]+(\[.\])\n:\1\n:
+	/^[^\n]+\n$/!b loop_tc
+	s:\[::g;s:]::g
+	s:\n$::p
 b EOS
 
 
