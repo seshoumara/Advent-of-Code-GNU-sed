@@ -1,12 +1,11 @@
 #!/usr/bin/sed -nrf
 
 :_Problem
-	# Advent of Code, 2022, day 2
+	# Advent of Code, 2022, day 02
 	# https://adventofcode.com/2022/day/2
 :_Author
-	# seshoumara
-	# https://www.twitch.tv/seshoumara
-	# http://codegolf.stackexchange.com/users/59010/seshoumara
+	# https://seshoumara.itch.io/
+	# https://discord.gg/8pWpB59YKZ
 
 
 b debug
