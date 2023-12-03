@@ -1,8 +1,8 @@
 #!/usr/bin/sed -nrf
 
 :_Problem
-	# Advent of Code, 2023, day 01
-	# https://adventofcode.com/2023/day/1
+	# Advent of Code, 2023, day 03
+	# https://adventofcode.com/2023/day/3
 :_Author
 	# https://seshoumara.itch.io/
 	# https://discord.gg/8pWpB59YKZ
@@ -10,84 +10,24 @@
 
 b debug
 :main
-	b calibration_sum_numeric
-	#b calibration_sum_alphanumeric
+	b part1
+	#b part2
 b EOS
 
 
-:calibration_sum_numeric
-    #remove letters
-    s:[^0-9]::g
-    #single digit edge-case: duplicate it to get the value
-    s:^.$:&&:
-    #remove characters in between, if any, then store to hold space
-    s:^(.).*(.)$:\1\2:
-l
-    1h;1!H
-    $b sum_values
+:part1
+	#TODO
 b EOS
 
 
-:calibration_sum_alphanumeric
-    #find the first value and mark it
-    s:((1)|(one)|(2)|(two)|(3)|(three)|(4)|(four)|(5)|(five)|(6)|(six)|(7)|(seven)|(8)|(eight)|(9)|(nine)):=&>:
-    s:^[^=]*::
-    #temporarily store it to hold space at the end of data from previously processed lines
-    1h;1!H
-    x
-    s:>.*::
-    x
-    #reverse remaining characters, if any
-    s:.*>:>:
-    s:$:\n:
-    :loop
-        />\n/b end
-        s:>(.)(.*\n)(.*):>\2\1\3:
-    b loop
-    :end
-        s:>\n::
-    #find the last value and mark it
-    s:((1)|(eno)|(2)|(owt)|(3)|(eerht)|(4)|(ruof)|(5)|(evif)|(6)|(xis)|(7)|(neves)|(8)|(thgie)|(9)|(enin)):=&>:
-    /=/!s:$:=>:
-    s:^[^=]*=(.*)>.*:\1:
-    #bring back the first value, then remove it from hold space
-    x
-    G;h
-    s:\n=.*::
-    x
-    s:.*=::
-    #add look-up tables, then convert to numeric only
-    s:$:;one-1,two-2,three-3,four-4,five-5,six-6,seven-7,eight-8,nine-9:
-    s:$:,eno-1,owt-2,eerht-3,ruof-4,evif-5,xis-6,neves-7,thgie-8,enin-9:
-    s:^(.+)(\n.*\1-)(.):\3\2\3:
-    s:\n(.+)(;.*\1-)(.):\n\3\2\3:
-    s:;.*::
-    s:\n::
-    #single digit edge-case: duplicate it to get the value
-    s:^.$:&&:
-l
-    1h;1!H
-    $b sum_values
-b EOS
-
-
-:sum_values
-    x
-    s:\n: :g
-    #prepare math lib call (jump to appropriate label)
-    s:.*:<ADD>&#result_sv<DDA>:
-l
-    b add_pos
-    :result_sv
-        #extract and print sum
-        s:^<ADD>([^#]+)[^<]+<DDA>:\1:p
+:part2
+	#TODO
 b EOS
 
 
 :user_redirects
     #jump from math lib back to hard-coded label
     #(the call jump, the code executed there and this return jump is how one can have reusable functions in sed)
-    /##result_sv<DDA>/b result_sv
 b EOS
 
 
