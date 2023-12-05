@@ -75,10 +75,10 @@ b EOS
     x
     s:\n: :g
     #prepare math lib call (jump to appropriate label)
-    s:.*:<ADD>&#result_sv<DDA>:
+    s:.*:<ADD>&#result_ap_sv<DDA>:
 l
     b add_pos
-    :result_sv
+    :result_ap_sv
         #extract and print sum
         s:^<ADD>([^#]+)[^<]+<DDA>:\1:p
 b EOS
@@ -87,8 +87,8 @@ b EOS
 :user_redirects
     #jump from math lib back to hard-coded label
     #(the call jump, the code executed there and this return jump is how one can have reusable functions in sed)
-    /##result_sv<DDA>/b result_sv
-b EOS
+    /##result_ap_sv<DDA>/b result_ap_sv
+Q 2
 
 
 :debug

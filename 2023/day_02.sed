@@ -10,25 +10,102 @@
 
 b debug
 :main
-	b part1
-	#b part2
+	b possible_games
+	#b possible_games_power
 b EOS
 
 
-:part1
-	#TODO
+:possible_games
+	#setup
+	s:^:pg-:
+	s:$:;\n12,13,14:
+	b get_max_cubes_per_color
+	:result_gmcpc_pg
+		s:^pg-::
+	#store game id, if it was possible
+	s/:12,13,14$//
+l
+	/:/!{
+		1h;1!H
+	}
+	$b sum_values
 b EOS
 
 
-:part2
-	#TODO
+:possible_games_power
+	#setup
+	s:^:pgp-:
+	s:$:;\n0,0,0:
+	b get_max_cubes_per_color
+	:result_gmcpc_pgp
+		s/^pgp-[0-9]+://
+	#calculate power and store it
+	s/^([^,]+),([^,]+),(.*)/<MULT>\1 \2 \3#result_mpp_pgp<TLUM>/
+l
+	b mult_pos
+	:result_mpp_pgp
+		s:<MULT>([^#]+)[^<]+<TLUM>:\1:
+l
+	1h;1!H
+	$b sum_values
+b EOS
+
+
+:get_max_cubes_per_color
+	s: ::g
+	s/:/:>/
+l
+	#put each number into its respective color slot (red 1st, green 2nd, blue 3rd)
+	:loop
+		s:>([0-9]+)red[,;](.*\n):>\2\1 :
+		s:>([0-9]+)green[,;](.*\n[^,]+,):>\2\1 :
+		s:>([0-9]+)blue[,;](.*\n[^,]+,[^,]+,):>\2\1 :
+	/>\n/!b loop
+	s/Game([0-9]+:)>\n/\1/
+l
+	#calculate the maximum number for red
+	s/:([^,]+),/:<MAX>\1#result_Mp_gmcpc_R<XAM>,/
+	b max_pos
+	:result_Mp_gmcpc_R
+		s:<MAX>([^#]+)[^<]+<XAM>:\1:
+	#calculate the maximum number for green
+	s/(:[^,]+,)([^,]+),/\1<MAX>\2#result_Mp_gmcpc_G<XAM>,/
+	b max_pos
+	:result_Mp_gmcpc_G
+		s:<MAX>([^#]+)[^<]+<XAM>:\1:
+	#calculate the maximum number for blue
+	s/(:[^,]+,[^,]+,)(.*)/\1<MAX>\2#result_Mp_gmcpc_B<XAM>/
+	b max_pos
+	:result_Mp_gmcpc_B
+		s:<MAX>([^#]+)[^<]+<XAM>:\1:
+l
+	/^pg-/b result_gmcpc_pg
+	/^pgp-/b result_gmcpc_pgp
+Q 3
+
+
+:sum_values
+    x
+    s:\n: :g
+    #prepare math lib call (jump to appropriate label)
+    s:.*:<ADD>&#result_ap_sv<DDA>:
+l
+    b add_pos
+    :result_ap_sv
+        #extract and print sum
+        s:^<ADD>([^#]+)[^<]+<DDA>:\1:p
 b EOS
 
 
 :user_redirects
     #jump from math lib back to hard-coded label
     #(the call jump, the code executed there and this return jump is how one can have reusable functions in sed)
-b EOS
+    /##result_Mp_gmcpc_R<XAM>/b result_Mp_gmcpc_R
+    /##result_Mp_gmcpc_G<XAM>/b result_Mp_gmcpc_G
+    /##result_Mp_gmcpc_B<XAM>/b result_Mp_gmcpc_B
+    /##result_mpp_pgp<TLUM>/b result_mpp_pgp
+    /##result_ap_sv<DDA>/b result_ap_sv
+Q 2
 
 
 :debug
@@ -38,6 +115,78 @@ b main
 
 
 ######################### MATH LIB #########################
+
+#1+: <SEQ>3-5,2-8,7-7#label<QES> -> <SEQ>3 4 5,2 3 4 5 6 7 8,7##label<QES>
+:seq_pos
+        s:<SEQ>:&,:
+        b next_sp
+        :loop_sp
+                /,([0-9]+)<INC>\1#[^<]+<CNI>[^<]+<QES>/b next_sp
+                b incr_pos
+                :result_ip_sp
+                        s:(<INC>)([0-9]+)#([^<]+<CNI>)([^,#]+)([^<]+<QES>):\1\2\3\4 \2\5:
+        b loop_sp
+        :next_sp
+                s:,[0-9]+<INC>[^<]+<CNI>([^<]+<QES>):,\1:
+                /,[0-9]+-[0-9]+[,#][^<]+<QES>/!b print_sp
+                s:,([0-9]+)-([0-9]+)([,#][^<]+<QES>):,\2<INC>\1#result_ip_sp<CNI>\1\3:
+        b loop_sp
+        :print_sp
+                s:(<SEQ>),([^#]+)(#[^<]+<QES>):\1\2#\3:
+b redirect
+
+
+#1+: <MULT>2 3 4#label<TLUM> -> <MULT>24##label<TLUM>
+:mult_pos
+        s:(<MULT>)([0-9]+#):\11 \2:
+        :loop_mpp
+                / ?\b0\b ([0-9]+)(#[^<]+<TLUM>)/{
+                        s:(<MULT>)[^#]+:\1 0:
+                        b print_mpp
+                }
+                s: ?([0-9]+) ([0-9]+)(#[^<]+<TLUM>):<ADD>\1 \2#result_ap_mpp<DDA>\3:
+                s:(<ADD>)([0-9]+) ([^<]+<DDA>[^<]+<TLUM>):\1<SEQ>1-\2#result_sp_mpp<QES>\3:
+                b seq_pos
+                :result_sp_mpp
+                        s:(<SEQ>)[0-9]+ ?([^#]*[^<]+<QES>)([0-9]+):\3 \1\2\3:
+                /<SEQ>#/!b result_sp_mpp
+                s: <SEQ>[^<]+<QES>[0-9]+::
+                b add_pos
+                :result_ap_mpp
+                        s:<ADD>([^#]+)[^<]+<DDA>: \1:
+        /<MULT>[0-9]+ /b loop_mpp
+        :print_mpp
+                s:(<MULT>) :\1:
+                s:#[^<]+<TLUM>:#&:
+b redirect
+
+
+#1+: <MAX>1 2 3#label<XAM> -> <MAX>3##label<XAM>
+:max_pos
+	s:(<MAX>)([0-9]+#):\10 \2:
+	s: ?([0-9]+) ([0-9]+)(#[^<]+<XAM>):A\1,\1B\2,\2M\2\3:
+	:loop_Mp
+		/,0[BM][^<]+<XAM>/b next_Mp
+		s:,([0-9]+)(B[^<]+<XAM>):,<DEC>\1#result_dp_Mp1<CED>\2:
+		b decr_pos
+		:result_dp_Mp1
+			s:,<DEC>([0-9]+)#[^<]+<CED>(B[^<]+<XAM>):,\1\2:
+		s:,([0-9]+)(M[^<]+<XAM>):,<DEC>\1#result_dp_Mp2<CED>\2:
+		b decr_pos
+		:result_dp_Mp2
+			s:,<DEC>([0-9]+)#[^<]+<CED>(M[^<]+<XAM>):,\1\2:
+	b loop_Mp
+	:next_Mp
+		s:A([0-9]+),[1-9][0-9]*B[0-9]+,0M[0-9]+([^<]+<XAM>):A0,0B0,0M\1\2:
+		/<MAX>A/b print_Mp
+		s:B[0-9]+,[0-9]+M([0-9]+)([^<]+<XAM>):B\1,\1M\1\2:
+		s: ?([0-9]+)A[0-9]+,[0-9]+:A\1,\1:
+	b loop_Mp
+	:print_Mp
+		s:A[0-9]+,[0-9]+B[0-9]+,[0-9]+M([0-9]+):\1:
+		s:#[^<]+<XAM>:#&:
+b redirect
+
 
 #1+: <ADD>1 2 3#label<DDA> -> <ADD>6##label<DDA>
 :add_pos
@@ -114,6 +263,11 @@ b redirect
 
 
 :library_redirects
+	/##result_sp_mpp<QES>/b result_sp_mpp
+	/##result_ap_mpp<DDA>/b result_ap_mpp
+	/##result_ip_sp<CNI>/b result_ip_sp
+	/##result_dp_Mp1<CED>/b result_dp_Mp1
+	/##result_dp_Mp2<CED>/b result_dp_Mp2
 	/##result_dp_ap<CED>/b result_dp_ap
 	/##result_ip_ap<CNI>/b result_ip_ap
 b continue_redirects
