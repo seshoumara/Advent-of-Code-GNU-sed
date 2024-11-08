@@ -10,10 +10,16 @@
 
 b debug
 :main
+	b parse_input
+	:continue
 	b part1
 	#b part2
 b EOS
 
+
+:parse_input
+	#TODO
+b continue
 
 :part1
 	#TODO

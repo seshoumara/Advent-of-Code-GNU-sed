@@ -10,25 +10,67 @@
 
 b debug
 :main
-	b part1
-	#b part2
+	#b scratchcard_points
+	b scratchcard_copies
 b EOS
 
 
-:part1
+:scratchcard_points
+	#setup
+	s/.*: +/>/
+	s: +\| +:,:
+	s:  +: :g
+	s:$:;:
+l
+	#extract the matching winning numbers
+	:loop
+		s:>([0-9]+)\b(.*,.*)\b\1\b(.*;):>\1\2\1\3 \1:
+		s:>([0-9]+[ ,]):\1>:
+	/,>/!b loop
+	s:.*; ?::
+l
+	/^$/!{
+		#calculate the points (at least one matching winning number)
+		s:[0-9]+:2:g
+		s:^2:1:
+		s:.*:<MULT>&#result_mpp_scp<TLUM>:
+l
+		b mult_pos
+		:result_mpp_scp
+			s:<MULT>([^#]+)[^<]+<TLUM>:\1:
+	}
+	#set 0 points if no matching winning numbers
+	/^$/s:$:0:
+l
+	1h;1!H
+	$b sum_values
+b EOS
+
+
+:scratchcard_copies
 	#TODO
 b EOS
 
 
-:part2
-	#TODO
+:sum_values
+    x
+    s:\n: :g
+    #prepare math lib call (jump to appropriate label)
+    s:.*:<ADD>&#result_ap_sv<DDA>:
+l
+    b add_pos
+    :result_ap_sv
+        #extract and print sum
+        s:^<ADD>([^#]+)[^<]+<DDA>:\1:p
 b EOS
 
 
 :user_redirects
     #jump from math lib back to hard-coded label
     #(the call jump, the code executed there and this return jump is how one can have reusable functions in sed)
-b EOS
+    /##result_mpp_scp<TLUM>/b result_mpp_scp
+    /##result_ap_sv<DDA>/b result_ap_sv
+Q 2
 
 
 :debug
@@ -38,6 +80,51 @@ b main
 
 
 ######################### MATH LIB #########################
+
+#1+: <SEQ>3-5,2-8,7-7#label<QES> -> <SEQ>3 4 5,2 3 4 5 6 7 8,7##label<QES>
+:seq_pos
+        s:<SEQ>:&,:
+        b next_sp
+        :loop_sp
+                /,([0-9]+)<INC>\1#[^<]+<CNI>[^<]+<QES>/b next_sp
+                b incr_pos
+                :result_ip_sp
+                        s:(<INC>)([0-9]+)#([^<]+<CNI>)([^,#]+)([^<]+<QES>):\1\2\3\4 \2\5:
+        b loop_sp
+        :next_sp
+                s:,[0-9]+<INC>[^<]+<CNI>([^<]+<QES>):,\1:
+                /,[0-9]+-[0-9]+[,#][^<]+<QES>/!b print_sp
+                s:,([0-9]+)-([0-9]+)([,#][^<]+<QES>):,\2<INC>\1#result_ip_sp<CNI>\1\3:
+        b loop_sp
+        :print_sp
+                s:(<SEQ>),([^#]+)(#[^<]+<QES>):\1\2#\3:
+b redirect
+
+
+#1+: <MULT>2 3 4#label<TLUM> -> <MULT>24##label<TLUM>
+:mult_pos
+        s:(<MULT>)([0-9]+#):\11 \2:
+        :loop_mpp
+                / ?\b0\b ([0-9]+)(#[^<]+<TLUM>)/{
+                        s:(<MULT>)[^#]+:\1 0:
+                        b print_mpp
+                }
+                s: ?([0-9]+) ([0-9]+)(#[^<]+<TLUM>):<ADD>\1 \2#result_ap_mpp<DDA>\3:
+                s:(<ADD>)([0-9]+) ([^<]+<DDA>[^<]+<TLUM>):\1<SEQ>1-\2#result_sp_mpp<QES>\3:
+                b seq_pos
+                :result_sp_mpp
+                        s:(<SEQ>)[0-9]+ ?([^#]*[^<]+<QES>)([0-9]+):\3 \1\2\3:
+                /<SEQ>#/!b result_sp_mpp
+                s: <SEQ>[^<]+<QES>[0-9]+::
+                b add_pos
+                :result_ap_mpp
+                        s:<ADD>([^#]+)[^<]+<DDA>: \1:
+        /<MULT>[0-9]+ /b loop_mpp
+        :print_mpp
+                s:(<MULT>) :\1:
+                s:#[^<]+<TLUM>:#&:
+b redirect
+
 
 #1+: <ADD>1 2 3#label<DDA> -> <ADD>6##label<DDA>
 :add_pos
@@ -114,6 +201,9 @@ b redirect
 
 
 :library_redirects
+	/##result_sp_mpp<QES>/b result_sp_mpp
+	/##result_ap_mpp<DDA>/b result_ap_mpp
+	/##result_ip_sp<CNI>/b result_ip_sp
 	/##result_dp_ap<CED>/b result_dp_ap
 	/##result_ip_ap<CNI>/b result_ip_ap
 b continue_redirects
