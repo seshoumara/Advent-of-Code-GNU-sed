@@ -1,8 +1,8 @@
 #!/usr/bin/sed -nrf
 
 :_Problem
-	# Advent of Code, 2025, day 04
-	# https://adventofcode.com/2025/day/4
+	# Advent of Code, 2025, day 05
+	# https://adventofcode.com/2025/day/5
 :_Author
 	# https://seshoumara.itch.io/
 	# https://discord.gg/8pWpB59YKZ
@@ -10,233 +10,83 @@
 
 b debug
 :main
-	b read_file
+	x
+	/-/{
+		x
+		b continue_m
+	}
+	x
+	b get_all_intervals
 	:continue_m
-		x
-		s:.*:0,0:
-		x
-	#b part_1
-	b part_2
+	b part_1
+	#b part_2
 	:print_result_m
 		x
-		s/^.*,(.*)$/Rolls of paper that can be accessed is: \1/
-		p
+			s:.*;::
+			s/.*/Total number of fresh ingredients: &/
+			p
 		x
 b EOS
 
-:read_file
-	$ b continue_m
-	$!N
-b read_file
-
-:gen_adjacent_chars_p1
-	s:([.@]):&<>:g
-	s:^:;:
-	s:^[^\n]+\n:&,:
-#p
-	:loop_UD_gac_p1
-		/[;,]$/b del_sep_2_gac_p1
-		#cell next to ; put as neigh. to cell next to ,
-		s:;(.)[^\n]*\n.*,.<:&\1:
-		#cell next to ; put as neigh. to cell next to the cell next to ,
-		s:;(.)[^\n]*\n.*,.<[.@]*>.<:&\1:
-		#cell next to ; put as neigh. to cell before the cell next to ,
-		s:;(.)([^\n]*\n.*.<)([.@]*>,):;\1\2\1\3:
-		
-		#cell next to , put as neigh. to cell next to ;
-		s:(;.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
-		#cell next to , put as neigh. to cell next to the cell next to ;
-		s:(;.<[.@]*>.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
-		#cell next to , put as neigh. to cell before the cell before ;
-#l
-		s:(.<)([.@]*>;[^\n]*\n.*,)(.):\1\3\2\3:
-#l
-		#shift ; and , by one cell
-		s:;(.<[.@]*>):\1;:
-		s:,(.<[.@]*>):\1,:
-		#if both are at end of their respective line (reset):
-		/;\n(.*),\n/ {
-			# move ; to next line after , changed to ,
-			# move , at the beginning of its line, changed to ;
-			s::\n;\1\n,:
-		}
-#=;p
-	b loop_UD_gac_p1
-	:del_sep_2_gac_p1
-		s:[;,]::g
-	s:^:#:
-#p
-	:loop_LR_gac_p1
-		/#$/ b del_sep_1_gac_p1
-		s:#(.)(<[.@]*>.<):&\1:
-		s:>#(.):\1>#\1:
-		s:#(.<[.@]*>):\1#:
-		s:#\n:\n#:
-#=;p
-	b loop_LR_gac_p1
-	:del_sep_1_gac_p1
-		s:#$::g
-p
-b continue_p1
-
-:gen_adjacent_chars_p2
-	s:([.@]):&<>:g
-	s:^:;:
-	s:^[^\n]+\n:&,:
-#p
-	:loop_UD_gac_p2
-		/[;,]$/b del_sep_2_gac_p2
-		#cell next to ; put as neigh. to cell next to ,
-		s:;(.)[^\n]*\n.*,.<:&\1:
-		#cell next to ; put as neigh. to cell next to the cell next to ,
-		s:;(.)[^\n]*\n.*,.<[.@]*>.<:&\1:
-		#cell next to ; put as neigh. to cell before the cell next to ,
-		s:;(.)([^\n]*\n.*.<)([.@]*>,):;\1\2\1\3:
-		
-		#cell next to , put as neigh. to cell next to ;
-		s:(;.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
-		#cell next to , put as neigh. to cell next to the cell next to ;
-		s:(;.<[.@]*>.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
-		#cell next to , put as neigh. to cell before the cell before ;
-#l
-		s:(.<)([.@]*>;[^\n]*\n.*,)(.):\1\3\2\3:
-#l
-		#shift ; and , by one cell
-		s:;(.<[.@]*>):\1;:
-		s:,(.<[.@]*>):\1,:
-		#if both are at end of their respective line (reset):
-		/;\n(.*),\n/ {
-			# move ; to next line after , changed to ,
-			# move , at the beginning of its line, changed to ;
-			s::\n;\1\n,:
-		}
-#=;p
-	b loop_UD_gac_p2
-	:del_sep_2_gac_p2
-		s:[;,]::g
-	s:^:#:
-#p
-	:loop_LR_gac_p2
-		/#$/ b del_sep_1_gac_p2
-		s:#(.)(<[.@]*>.<):&\1:
-		s:>#(.):\1>#\1:
-		s:#(.<[.@]*>):\1#:
-		s:#\n:\n#:
-#=;p
-	b loop_LR_gac_p2
-	:del_sep_1_gac_p2
-		s:#$::g
-#p
-b continue_p2
+:get_all_intervals
+	N
+	/\n$/ {
+		h
+		x
+		s:\n:,:g
+		s:$:;0:
+		x
+		b EOS
+	}
+b get_all_intervals
 
 :part_1
-	b gen_adjacent_chars_p1
-	:continue_p1
-	s:^:#:
-	:loop_p1
-		/#$/{
-			x
-				s:^(.*),0$:\1,\1:
-			x
-			b print_result_m
-		}
-		/#(\.<[.@]*>)/{
-			s::\1#:
-			s:#\n:\n#:
-#=;p
-			b loop_p1
-		}
-		#check how many @s are in the 8 neighbours of this pos!
-		/#@/{
-#=;p
-			#delete .s in the list
-			:delete_dots_p1
-				/#@<@*>/ b done_deleting_p1
-				s:(#@<@*)\.:\1:
-			b delete_dots_p1
-			:done_deleting_p1
-#p
-			/#@<@{0,3}>/{
-				x
-				s:^(.*),:<INC>\1#return_inc_result_p1<CNI>,:
-				b incr_pos
-				:return_inc_result_p1
-					s:<INC>([0-9]+)##return_inc_result_p1<CNI>:\1:
+	G
+	s:\n:&#:
 p
-				x
-			}
-			s:#(@<@*>):\1#:
-			s:#\n:\n#:
-#p
+	:loop_p1
+		#have we checked all intervals?
+		/#;/{
+			$! b EOS
+			$ b print_result_m
 		}
+		:seq_loop_p1
+			#check current value against the ID: if equal:
+			/^([0-9]+)\n.*#\1-/{
+				#then increment running total (we found a fresh ID)
+				x
+				s:;([0-9]+)$:;<INC>\1#return_incr_result_t_p1<CNI>:
+				b incr_pos
+				:return_incr_result_t_p1
+					s:<INC>([0-9]+)##return_incr_result_t_p1<CNI>:\1:
+#p
+				x
+				#break from both loops
+				b EOS
+			}
+			#is the current value the same as the end value of the interval?
+			/#([0-9]+)-\1,/ b next_interval_p1
+
+			s:#([0-9]+)-:#<INC>\1#return_incr_result_i_p1<CNI>-:
+			b incr_pos
+			:return_incr_result_i_p1
+				s:<INC>([0-9]+)##return_incr_result_i_p1<CNI>:\1:
+#p
+		b seq_loop_p1
+		:next_interval_p1
+		#shift to next interval
+		s:#([0-9]+-[0-9]+,):\1#:
+#p
 	b loop_p1
 b EOS
 
 :part_2
-	:while_loop_p2
-		#delete all gen neighb. list
-		s:<[.@]*>::g
-		s:#::
-p
-		b gen_adjacent_chars_p2
-		:continue_p2
-		s:^:#:
-#p
-		:loop_p2
-			/#$/ b reset_iter_p2
-			/#(\.<[.@]*>)/{
-				s::\1#:
-				s:#\n:\n#:
-#=;p
-				b loop_p2
-			}
-			#check how many @s are in the 8 neighbours of this pos!
-			/#@/{
-#=;p
-				#delete .s in the list
-				:delete_dots_p2
-					/#@<@*>/ b done_deleting_p2
-					s:(#@<@*)\.:\1:
-				b delete_dots_p2
-				:done_deleting_p2
-#p
-				/#@<@{0,3}>/{
-					x
-					s:^(.*),:<INC>\1#return_inc_result_p2<CNI>,:
-					b incr_pos
-					:return_inc_result_p2
-						s:<INC>([0-9]+)##return_inc_result_p2<CNI>:\1:
-#p
-					x
-					s:#@:#.:
-				}
-				s:#([.@]<@*>):\1#:
-				s:#\n:\n#:
-#p
-			}
-		b loop_p2
-		:reset_iter_p2
-			x
-			s:^(.*),(.*)$:\1,<CADD>\1 \2#return_cadd_result_p2<DDAC>:
-#p
-			b custom_add
-			:return_cadd_result_p2
-				s:<CADD>([0-9]+)##return_cadd_result_p2<DDAC>:\1:
-p
-			/^0,/ {
-				x
-				b print_result_m
-			}
-			/^0,/! s:^.*,:0,:
-#p
-			x
-	b while_loop_p2
+	#TODO
 b EOS
 
 :user_redirects
-	/##return_inc_result_p1<CNI>/ b return_inc_result_p1
-	/##return_inc_result_p2<CNI>/ b return_inc_result_p2
-	/##return_cadd_result_p2<DDAC>/ b return_cadd_result_p2
+	/##return_incr_result_i_p1<CNI>/ b return_incr_result_i_p1
+	/##return_incr_result_t_p1<CNI>/ b return_incr_result_t_p1
 b EOS
 
 :debug
@@ -285,7 +135,7 @@ b main
 		s:(<CADD>)([0-9]*, [0-9<]+ [0-9<]+@)([1-9]):\1\3\20:
 		#delete the nrs, move the sum into where nrs where
 		s:(<CADD>)([0-9]+),[^@]+:\1, \2:
-#p
+p
 	:next_cadd
 		/(<CADD>, [0-9]+)(@0;)#/b print
 		s:(<CADD>, [0-9]+)(@0;)([0-9]+) :\1< \3<\2:
@@ -377,8 +227,9 @@ b redirect
 
 
 #NOTICE: generating all interval numbers at once is super super super slow. DON'T USE THIS FUNCTION!!!
-#have your own loop which calls increment on start/current value, do something with it (DO NOT STORE IT) and continue the loop
-#DOING THAT MAKES IT RELATIVELY INSTANT!!!
+	#have your own loop which calls increment on start/current value, do something with it (DO NOT STORE IT) and continue the loop
+		#unfortunately, this is also super super super slow on 10^9-10^12 !!!!
+
 #1+: <SEQ>3-5,2-8,7-7#label<QES> -> <SEQ>3 4 5,2 3 4 5 6 7 8,7##label<QES>
 :seq_pos
 	s:<SEQ>:&,:
