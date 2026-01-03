@@ -33,7 +33,6 @@ b read_file
 	s:([.@]):&<>:g
 	s:^:;:
 	s:^[^\n]+\n:&,:
-#p
 	:loop_UD_gac_p1
 		/[;,]$/b del_sep_2_gac_p1
 		#cell next to ; put as neigh. to cell next to ,
@@ -48,9 +47,7 @@ b read_file
 		#cell next to , put as neigh. to cell next to the cell next to ;
 		s:(;.<[.@]*>.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
 		#cell next to , put as neigh. to cell before the cell before ;
-#l
 		s:(.<)([.@]*>;[^\n]*\n.*,)(.):\1\3\2\3:
-#l
 		#shift ; and , by one cell
 		s:;(.<[.@]*>):\1;:
 		s:,(.<[.@]*>):\1,:
@@ -60,19 +57,16 @@ b read_file
 			# move , at the beginning of its line, changed to ;
 			s::\n;\1\n,:
 		}
-#=;p
 	b loop_UD_gac_p1
 	:del_sep_2_gac_p1
 		s:[;,]::g
 	s:^:#:
-#p
 	:loop_LR_gac_p1
 		/#$/ b del_sep_1_gac_p1
 		s:#(.)(<[.@]*>.<):&\1:
 		s:>#(.):\1>#\1:
 		s:#(.<[.@]*>):\1#:
 		s:#\n:\n#:
-#=;p
 	b loop_LR_gac_p1
 	:del_sep_1_gac_p1
 		s:#$::g
@@ -83,7 +77,6 @@ b continue_p1
 	s:([.@]):&<>:g
 	s:^:;:
 	s:^[^\n]+\n:&,:
-#p
 	:loop_UD_gac_p2
 		/[;,]$/b del_sep_2_gac_p2
 		#cell next to ; put as neigh. to cell next to ,
@@ -98,9 +91,7 @@ b continue_p1
 		#cell next to , put as neigh. to cell next to the cell next to ;
 		s:(;.<[.@]*>.<)([.@]*>[^\n]*\n.*,)(.):\1\3\2\3:
 		#cell next to , put as neigh. to cell before the cell before ;
-#l
 		s:(.<)([.@]*>;[^\n]*\n.*,)(.):\1\3\2\3:
-#l
 		#shift ; and , by one cell
 		s:;(.<[.@]*>):\1;:
 		s:,(.<[.@]*>):\1,:
@@ -110,23 +101,19 @@ b continue_p1
 			# move , at the beginning of its line, changed to ;
 			s::\n;\1\n,:
 		}
-#=;p
 	b loop_UD_gac_p2
 	:del_sep_2_gac_p2
 		s:[;,]::g
 	s:^:#:
-#p
 	:loop_LR_gac_p2
 		/#$/ b del_sep_1_gac_p2
 		s:#(.)(<[.@]*>.<):&\1:
 		s:>#(.):\1>#\1:
 		s:#(.<[.@]*>):\1#:
 		s:#\n:\n#:
-#=;p
 	b loop_LR_gac_p2
 	:del_sep_1_gac_p2
 		s:#$::g
-#p
 b continue_p2
 
 :part_1
@@ -143,19 +130,16 @@ b continue_p2
 		/#(\.<[.@]*>)/{
 			s::\1#:
 			s:#\n:\n#:
-#=;p
 			b loop_p1
 		}
 		#check how many @s are in the 8 neighbours of this pos!
 		/#@/{
-#=;p
 			#delete .s in the list
 			:delete_dots_p1
 				/#@<@*>/ b done_deleting_p1
 				s:(#@<@*)\.:\1:
 			b delete_dots_p1
 			:done_deleting_p1
-#p
 			/#@<@{0,3}>/{
 				x
 				s:^(.*),:<INC>\1#return_inc_result_p1<CNI>,:
@@ -167,7 +151,6 @@ p
 			}
 			s:#(@<@*>):\1#:
 			s:#\n:\n#:
-#p
 		}
 	b loop_p1
 b EOS
@@ -181,44 +164,37 @@ p
 		b gen_adjacent_chars_p2
 		:continue_p2
 		s:^:#:
-#p
 		:loop_p2
 			/#$/ b reset_iter_p2
 			/#(\.<[.@]*>)/{
 				s::\1#:
 				s:#\n:\n#:
-#=;p
 				b loop_p2
 			}
 			#check how many @s are in the 8 neighbours of this pos!
 			/#@/{
-#=;p
 				#delete .s in the list
 				:delete_dots_p2
 					/#@<@*>/ b done_deleting_p2
 					s:(#@<@*)\.:\1:
 				b delete_dots_p2
 				:done_deleting_p2
-#p
 				/#@<@{0,3}>/{
 					x
 					s:^(.*),:<INC>\1#return_inc_result_p2<CNI>,:
 					b incr_pos
 					:return_inc_result_p2
 						s:<INC>([0-9]+)##return_inc_result_p2<CNI>:\1:
-#p
 					x
 					s:#@:#.:
 				}
 				s:#([.@]<@*>):\1#:
 				s:#\n:\n#:
-#p
 			}
 		b loop_p2
 		:reset_iter_p2
 			x
 			s:^(.*),(.*)$:\1,<CADD>\1 \2#return_cadd_result_p2<DDAC>:
-#p
 			b custom_add
 			:return_cadd_result_p2
 				s:<CADD>([0-9]+)##return_cadd_result_p2<DDAC>:\1:
@@ -228,7 +204,6 @@ p
 				b print_result_m
 			}
 			/^0,/! s:^.*,:0,:
-#p
 			x
 	b while_loop_p2
 b EOS
@@ -253,22 +228,18 @@ b main
 	s:<CADD>:&, 0@0;:
 	b next_cadd
 	:column_loop_cadd
-#=;p
 		#exit condition
 		/<CADD>[0-9]*, <[0-9]+ <[0-9]+@/ b cleanup_cadd
 		#copy the column digits to the carry pos, separated by space
 		#edge case: there could be no digit in that column (I got lucky)
 		s:(<CADD>[0-9]*, [0-9]*)([0-9])(<[0-9]* [0-9<]+@):&\2 :
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9]*)([0-9])(<[0-9]*@):&\2 :
-#p
 		#call add_pos on all nrs in carry pos
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9<]+@)([^;]+):\1<ADD>\2#return_add_result_cadd<DDA>:
-#p
 		b add_pos
 		:return_add_result_cadd
 			s:(<CADD>[0-9]*, [0-9<]+ [0-9<]+@)<ADD>([0-9]+)##return_add_result_cadd<DDA>:\1\2:
 		#if col sum is 2 digits, 1st digit is carry, 2nd digit is the result
-#p
 		/(<CADD>)([0-9]*, [0-9<]+ [0-9<]+@)([0-9])([0-9])/{
 			s::\1\4\2\3:
 			b shift_cadd
@@ -278,23 +249,19 @@ b main
 		#shift both of <, edge case: if < is at start of nr don't shift
 		s:(<CADD>[0-9]*, [0-9]*)([0-9])<:\1<\2:
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9]*)([0-9])<:\1<\2:
-#p
 	b column_loop_cadd
 	:cleanup_cadd
 		#check if carry from last col add is != 0, put it in front of sum
 		s:(<CADD>)([0-9]*, [0-9<]+ [0-9<]+@)([1-9]):\1\3\20:
 		#delete the nrs, move the sum into where nrs where
 		s:(<CADD>)([0-9]+),[^@]+:\1, \2:
-#p
 	:next_cadd
-		/(<CADD>, [0-9]+)(@0;)#/b print
+		/(<CADD>, [0-9]+)(@0;)#/b print_cadd
 		s:(<CADD>, [0-9]+)(@0;)([0-9]+) :\1< \3<\2:
-#p
 	b column_loop_cadd
-	:print
+	:print_cadd
 		#cleanup and double the #
 		s:(<CADD>), ([0-9]+)@0;:\1\2#:
-#p
 b redirect
 
 #the time complexity for bubble sort is n^2, which for 800 nrs the runtime is practically weeks!! Can this be optimized more??
@@ -304,7 +271,6 @@ b redirect
         s:<SORT>:&,:
         s:<SORT>[^#]*:& :
         :outer_loop_cs
-=
                 :inner_loop_cs
                         /;([0-9]+) #[^<]+<TROS>/ b reset_cs
                         /,([0-9]+) #[^<]+<TROS>/ b print_cs
@@ -497,7 +463,7 @@ b redirect
 :redirect
 	b library_redirects
 	:continue_redirects
-	b user_redirects
+b user_redirects
 
 
 :library_redirects

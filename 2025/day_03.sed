@@ -20,14 +20,11 @@ b EOS
 	s:^(.)(.):>\1@\2:
 	s:$:;:
 	:loop_outer_p1
-#p
 		/>.@;/b find_max_j_p1
 		:loop_inner_p1
 			/@;/ b reset
 			s:>(.)(.*)@(.)(.*;):>\1\2\3@\4 \1\3:
-#p
 			s:; (..)(.*) \1:;\2 \1:
-#p
 		b loop_inner_p1
 		:reset
 			s:@::
@@ -47,11 +44,8 @@ b EOS
 :part_2
 	#find max digit until last 11 digits
 	#find max digit after prev one, until last 10 digits
-	#...
-	s:(.*)(...........)$:>\1\n\2:
-	:loop_p2
-		s:
-	b loop_p2
+	#...TODO
+	#s:(.*)(...........)$:>\1\n\2:
 b EOS
 
 :sum_values
@@ -84,22 +78,18 @@ b main
 	s:<CADD>:&, 0@0;:
 	b next_cadd
 	:column_loop_cadd
-#=;p
 		#exit condition
 		/<CADD>[0-9]*, <[0-9]+ <[0-9]+@/ b cleanup_cadd
 		#copy the column digits to the carry pos, separated by space
 		#edge case: there could be no digit in that column (I got lucky)
 		s:(<CADD>[0-9]*, [0-9]*)([0-9])(<[0-9]* [0-9<]+@):&\2 :
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9]*)([0-9])(<[0-9]*@):&\2 :
-#p
 		#call add_pos on all nrs in carry pos
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9<]+@)([^;]+):\1<ADD>\2#return_add_result_cadd<DDA>:
-#p
 		b add_pos
 		:return_add_result_cadd
 			s:(<CADD>[0-9]*, [0-9<]+ [0-9<]+@)<ADD>([0-9]+)##return_add_result_cadd<DDA>:\1\2:
 		#if col sum is 2 digits, 1st digit is carry, 2nd digit is the result
-#p
 		/(<CADD>)([0-9]*, [0-9<]+ [0-9<]+@)([0-9])([0-9])/{
 			s::\1\4\2\3:
 			b shift_cadd
@@ -109,23 +99,19 @@ b main
 		#shift both of <, edge case: if < is at start of nr don't shift
 		s:(<CADD>[0-9]*, [0-9]*)([0-9])<:\1<\2:
 		s:(<CADD>[0-9]*, [0-9<]+ [0-9]*)([0-9])<:\1<\2:
-#p
 	b column_loop_cadd
 	:cleanup_cadd
 		#check if carry from last col add is != 0, put it in front of sum
 		s:(<CADD>)([0-9]*, [0-9<]+ [0-9<]+@)([1-9]):\1\3\20:
 		#delete the nrs, move the sum into where nrs where
 		s:(<CADD>)([0-9]+),[^@]+:\1, \2:
-#p
 	:next_cadd
-		/(<CADD>, [0-9]+)(@0;)#/b print
+		/(<CADD>, [0-9]+)(@0;)#/b print_cadd
 		s:(<CADD>, [0-9]+)(@0;)([0-9]+) :\1< \3<\2:
-#p
 	b column_loop_cadd
-	:print
+	:print_cadd
 		#cleanup and double the #
 		s:(<CADD>), ([0-9]+)@0;:\1\2#:
-#p
 b redirect
 
 #the time complexity for bubble sort is n^2, which for 800 nrs the runtime is practically weeks!! Can this be optimized more??
@@ -135,7 +121,6 @@ b redirect
         s:<SORT>:&,:
         s:<SORT>[^#]*:& :
         :outer_loop_cs
-=
                 :inner_loop_cs
                         /;([0-9]+) #[^<]+<TROS>/ b reset_cs
                         /,([0-9]+) #[^<]+<TROS>/ b print_cs
@@ -328,7 +313,7 @@ b redirect
 :redirect
 	b library_redirects
 	:continue_redirects
-	b user_redirects
+b user_redirects
 
 
 :library_redirects

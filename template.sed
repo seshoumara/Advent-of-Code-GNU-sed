@@ -1,8 +1,8 @@
 #!/usr/bin/sed -nrf
 
 :_Problem
-	# Advent of Code, 2025, day 02
-	# https://adventofcode.com/2025/day/2
+	# Advent of Code, 2026, day 01
+	# https://adventofcode.com/2026/day/1
 :_Author
 	# https://seshoumara.itch.io/
 	# https://discord.gg/8pWpB59YKZ
@@ -10,103 +10,27 @@
 
 b debug
 :main
-	#b part_1
-	b part_2
-	:print_result
-		s/.*/The sum of all invalid IDs is: &/
-		p
+	b part_1
+	#b part_2
 b EOS
 
 :part_1
-	p
-	h
-	s:.*:;:
-	:loop_intervals_p1
-		G
-		/\n$/{
-			s:^;::
-			s: \n$::
-			b sum_IDs
-		}
-		s:,.*::
-		s:^(.*)\n(.*):\2\1:
-		x
-			s:^[^,]+,?::
-p
-		x
-		:seq_loop_p1
-			#test for invalid ID: nr twice
-			/^([0-9]+)\1-/{
-				s:^([0-9]+)(-[0-9]+);:&\1 :
-			}
-			/^([0-9]+)-\1;/{
-				s::;:
-				b loop_intervals_p1
-			}
-			s:^([0-9]+)-:<INC>\1#return_incr_result_p1<CNI>-:
-			b incr_pos
-			:return_incr_result_p1
-				s:<INC>([0-9]+)##return_incr_result_p1<CNI>:\1:
-		b seq_loop_p1
-	b loop_intervals_p1
+	#TODO
 b EOS
 
-:part_2	
-	p
-	h
-	s:.*:;:
-	:loop_intervals_p2
-		G
-		/\n$/{
-			s:^;::
-			s: \n$::
-			b sum_IDs
-		}
-		s:,.*::
-		s:^(.*)\n(.*):\2\1:
-		x
-			s:^[^,]+,?::
-p
-		x
-		:seq_loop_p2
-			#test for invalid ID: nr at least twice
-			#/^([0-9]+)\1-/{
-			/^([0-9]+)(\1)+-/{
-				s:^([0-9]+)(-[0-9]+);:&\1 :
-			}
-			/^([0-9]+)-\1;/{
-				s::;:
-				b loop_intervals_p2
-			}
-			s:^([0-9]+)-:<INC>\1#return_incr_result_p2<CNI>-:
-			b incr_pos
-			:return_incr_result_p2
-				s:<INC>([0-9]+)##return_incr_result_p2<CNI>:\1:
-		b seq_loop_p2
-	b loop_intervals_p2
-b EOS
-
-:sum_IDs
-	s:.*:<CADD>&#return_cadd_result_sum<DDAC>:
-p
-	b custom_add
-	:return_cadd_result_sum
-		s:<CADD>([0-9]+)##return_cadd_result_sum<DDAC>:\1:
-	b print_result
+:part_2
+	#TODO
 b EOS
 
 :user_redirects
-	/##return_incr_result_p1<CNI>/ b return_incr_result_p1
-	/##return_incr_result_p2<CNI>/ b return_incr_result_p2
-	/##return_cadd_result_sum<DDAC>/ b return_cadd_result_sum
-
-	#/##return_cadd_result_debug<DDAC>/ b return_cadd_result_debug
+	#TODO
 b EOS
 
 :debug
         #test if GNU extensions are supported
         1v
 b main
+
 
 ######################### MATH / UTILS #########################
 
@@ -144,10 +68,10 @@ b main
 		#delete the nrs, move the sum into where nrs where
 		s:(<CADD>)([0-9]+),[^@]+:\1, \2:
 	:next_cadd
-		/(<CADD>, [0-9]+)(@0;)#/b print_cadd
+		/(<CADD>, [0-9]+)(@0;)#/b print
 		s:(<CADD>, [0-9]+)(@0;)([0-9]+) :\1< \3<\2:
 	b column_loop_cadd
-	:print_cadd
+	:print
 		#cleanup and double the #
 		s:(<CADD>), ([0-9]+)@0;:\1\2#:
 b redirect
@@ -227,7 +151,6 @@ b redirect
 	:print_ssp
 		s:#[^<]+<TESBUS>:#&:
 b redirect
-
 
 
 #NOTICE: generating all interval numbers at once is super super super slow. DON'T USE THIS FUNCTION!!!

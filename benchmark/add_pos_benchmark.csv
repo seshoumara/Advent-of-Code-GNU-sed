@@ -1,0 +1,5 @@
+func,real,user,sys
+add,142m18.562s,142m12.082s,0m1.911s
+custom_add,16m33.366s,16m32.661s,0m0.212s
+custom_faster_add,8m20.427s,8m20.153s,0m0.079s
+cammy_add,5m36.211s,5m35.898s,0m0.097s
